@@ -335,7 +335,6 @@ with st.sidebar:
     menu_opciones = {
         "🏠 Inicio": "inicio",
         "➕ Agregar recurso": "agregar",
-        "🔍 Buscar": "buscar",
         "📊 Estadisticas": "estadisticas"
     }
 
@@ -349,13 +348,6 @@ with st.sidebar:
 
     # Filtros (solo en inicio)
     if st.session_state.pagina == 'inicio':
-        st.markdown(f"<div class='sidebar-title'>🔎 Filtros</div>", unsafe_allow_html=True)
-
-        df = st.session_state.df_recursos
-
-        # Checkbox freemium / pago
-        incluir_freemium = st.checkbox("Incluir recursos 'freemium' (gratis con limites)", value=True)
-        mostrar_pago = st.checkbox("Mostrar tambien recursos de pago (referencia)", value=False)
 
         buscar_texto = st.text_input("Buscar por nombre o descripcion", placeholder="Escribe aqui...")
 
