@@ -346,36 +346,11 @@ with st.sidebar:
 
     st.markdown("---")
 
-    # Filtros (solo en inicio)
+    # Busqueda por nombre (solo en inicio)
     if st.session_state.pagina == 'inicio':
-
+        st.markdown(f"<div class='sidebar-title'>🔎 Buscar</div>", unsafe_allow_html=True)
         buscar_texto = st.text_input("Buscar por nombre o descripcion", placeholder="Escribe aqui...")
-
-        # Tipo
-        tipos = ['Todos'] + sorted([t for t in df['tipo'].unique() if t.strip()])
-        filtro_tipo = st.selectbox("Tipo de recurso", tipos)
-
-        # Area
-        areas = ['Todos'] + sorted([a for a in df['area'].unique() if a.strip()])
-        filtro_area = st.selectbox("Area de conocimiento", areas)
-
-        # Idioma
-        idiomas = ['Todos'] + sorted([i for i in df['idioma'].unique() if i.strip()])
-        filtro_idioma = st.selectbox("Idioma", idiomas)
-
-        # Pais
-        paises = ['Todos'] + sorted([p for p in df['pais'].unique() if p.strip()])
-        filtro_pais = st.selectbox("Pais / Institucion de origen", paises)
-
-        st.session_state.filtros = {
-            'freemium': incluir_freemium,
-            'pago': mostrar_pago,
-            'texto': buscar_texto,
-            'tipo': filtro_tipo,
-            'area': filtro_area,
-            'idioma': filtro_idioma,
-            'pais': filtro_pais
-        }
+        st.session_state.filtros = {'texto': buscar_texto}
 
     st.markdown("---")
     st.markdown(f"""
@@ -406,7 +381,7 @@ if st.session_state.pagina == 'inicio':
 
     st.markdown("---")
 
-    # Aplicar filtros
+    # Aplicar busqueda por nombre/descripcion
     df_filtrado = df.copy()
 
     if filtros.get('texto'):
@@ -417,22 +392,6 @@ if st.session_state.pagina == 'inicio':
             df_filtrado['institucion'].str.lower().str.contains(txt, na=False)
         )
         df_filtrado = df_filtrado[mask]
-
-    if filtros.get('tipo') and filtros['tipo'] != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['tipo'] == filtros['tipo']]
-
-    if filtros.get('area') and filtros['area'] != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['area'] == filtros['area']]
-
-    if filtros.get('idioma') and filtros['idioma'] != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['idioma'] == filtros['idioma']]
-
-    if filtros.get('pais') and filtros['pais'] != 'Todos':
-        df_filtrado = df_filtrado[df_filtrado['pais'] == filtros['pais']]
-
-    # Filtro de acceso
-    if not filtros.get('pago', False):
-        df_filtrado = df_filtrado[~df_filtrado['acceso'].str.contains('Suscripcion', case=False, na=False)]
 
     # Metricas
     total = len(df)
@@ -611,58 +570,6 @@ elif st.session_state.pagina == 'agregar':
         use_container_width=True
     )
     st.info("Sube este archivo a tu repositorio de GitHub para que los cambios persistan en Streamlit Cloud.")
-
-
-# ============================================================
-# PAGINA: BUSCAR
-# ============================================================
-elif st.session_state.pagina == 'buscar':
-    st.markdown(f'<div class="iu-header-title" style="margin-bottom:4px;">🔍 Busqueda Avanzada</div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="iu-header-sub" style="margin-bottom:24px;">Busca recursos por palabra clave en cualquier campo.</div>', unsafe_allow_html=True)
-
-    busqueda = st.text_input("Escribe para buscar:", placeholder="Ej: biblioteca, Colombia, matematicas, juegos...")
-
-    if busqueda:
-        df = st.session_state.df_recursos
-        txt = busqueda.lower()
-        mask = (
-            df['nombre'].str.lower().str.contains(txt, na=False) |
-            df['descripcion'].str.lower().str.contains(txt, na=False) |
-            df['institucion'].str.lower().str.contains(txt, na=False) |
-            df['pais'].str.lower().str.contains(txt, na=False) |
-            df['tipo'].str.lower().str.contains(txt, na=False) |
-            df['area'].str.lower().str.contains(txt, na=False)
-        )
-        resultados = df[mask]
-
-        st.markdown(f"**{len(resultados)} resultado(s) encontrado(s):**")
-
-        for idx, row in resultados.iterrows():
-            tag = tag_acceso(row['acceso'])
-            tag_cls = tag_class(tag)
-            meta_parts = [p for p in [row['tipo'], row['area'], row['idioma']] if p.strip()]
-            meta = ' · '.join(meta_parts) if meta_parts else '—'
-
-            with st.container():
-                st.markdown(f"""
-                <div class="resource-card">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                        <div class="card-title">{row['nombre']}</div>
-                        <span class="{tag_cls}">{tag}</span>
-                    </div>
-                    <div class="card-meta">{meta}</div>
-                    <div class="card-desc">{str(row['descripcion'])[:250]}{'...' if len(str(row['descripcion'])) > 250 else ''}</div>
-                    <div style="font-size:0.8rem; color:{GRIS_TEXTO}; margin-top:8px;">
-                        🏛️ {row['institucion'] or '—'} | 🌍 {row['pais'] or '—'}
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-
-                url = str(row['url']).strip()
-                if url.startswith('http'):
-                    st.link_button("🔗 Visitar recurso", url)
-    else:
-        st.info("Escribe algo arriba para comenzar la busqueda.")
 
 
 # ============================================================
