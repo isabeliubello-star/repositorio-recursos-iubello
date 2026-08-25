@@ -335,6 +335,7 @@ with st.sidebar:
     menu_opciones = {
         "🏠 Inicio": "inicio",
         "➕ Agregar recurso": "agregar",
+        "🔍 Buscar": "buscar",
         "📊 Estadisticas": "estadisticas"
     }
 
@@ -538,30 +539,38 @@ elif st.session_state.pagina == 'agregar':
     </div>
     """, unsafe_allow_html=True)
 
+    # Obtener valores unicos del CSV para los selectbox dinamicos
+    df_vals = st.session_state.df_recursos
+    tipos_unicos = sorted([t for t in df_vals['tipo'].unique() if t.strip()]) + ["Otro (nuevo)"]
+    areas_unicas = sorted([a for a in df_vals['area'].unique() if a.strip()]) + ["Otro (nuevo)"]
+    idiomas_unicos = sorted([i for i in df_vals['idioma'].unique() if i.strip()]) + ["Otro (nuevo)"]
+    accesos_unicos = sorted([a for a in df_vals['acceso'].unique() if a.strip()]) + ["Otro (nuevo)"]
+
     with st.form("form_agregar", clear_on_submit=True):
         col1, col2 = st.columns(2)
         with col1:
             nombre = st.text_input("Nombre del recurso *", placeholder="Ej: Khan Academy")
-            tipo = st.selectbox("Tipo *", [
-                "", "Biblioteca digital", "Repositorio", "Juegos", 
-                "Plataforma educativa", "Base de datos", "Herramienta", 
-                "Simulador", "Otro"
-            ])
-            area = st.selectbox("Area de conocimiento", [
-                "", "General", "Matematicas", "Ciencias", "Ciencias sociales y humanas",
-                "Tecnologia", "Arte", "Idiomas", "Ingenieria", "Otro"
-            ])
+            tipo_sel = st.selectbox("Tipo *", [""] + tipos_unicos)
+            tipo = st.text_input("Tipo (personalizado)", placeholder="Escribe el tipo si seleccionaste 'Otro'", 
+                                 value="" if tipo_sel != "Otro (nuevo)" else "") if tipo_sel == "Otro (nuevo)" else tipo_sel
+
+            area_sel = st.selectbox("Area de conocimiento", [""] + areas_unicas)
+            area = st.text_input("Area (personalizada)", placeholder="Escribe el area si seleccionaste 'Otro'",
+                                value="" if area_sel != "Otro (nuevo)" else "") if area_sel == "Otro (nuevo)" else area_sel
+
             subarea = st.text_input("Sub area", placeholder="Ej: Algebra, Historia...")
 
         with col2:
             institucion = st.text_input("Institucion responsable", placeholder="Ej: Fundacion Carlos Slim")
             pais = st.text_input("Pais", placeholder="Ej: Colombia")
-            idioma = st.selectbox("Idioma", [
-                "", "Espanol", "Ingles", "Multilingue", "Portugues", "Frances", "Otro"
-            ])
-            acceso = st.selectbox("Tipo de acceso *", [
-                "", "Gratuito con registro", "Libre", "Suscripcion", "Gratuito", "Freemium", "Otro"
-            ])
+
+            idioma_sel = st.selectbox("Idioma", [""] + idiomas_unicos)
+            idioma = st.text_input("Idioma (personalizado)", placeholder="Escribe el idioma si seleccionaste 'Otro'",
+                                  value="" if idioma_sel != "Otro (nuevo)" else "") if idioma_sel == "Otro (nuevo)" else idioma_sel
+
+            acceso_sel = st.selectbox("Tipo de acceso *", [""] + accesos_unicos)
+            acceso = st.text_input("Acceso (personalizado)", placeholder="Escribe el acceso si seleccionaste 'Otro'",
+                                  value="" if acceso_sel != "Otro (nuevo)" else "") if acceso_sel == "Otro (nuevo)" else acceso_sel
 
         descripcion = st.text_area("Descripcion", placeholder="Describe el recurso...", height=100)
         url = st.text_input("URL *", placeholder="https://...")
