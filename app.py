@@ -335,7 +335,6 @@ with st.sidebar:
     menu_opciones = {
         "🏠 Inicio": "inicio",
         "➕ Agregar recurso": "agregar",
-        "🔍 Buscar": "buscar",
         "📊 Estadisticas": "estadisticas"
     }
 
