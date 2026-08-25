@@ -319,9 +319,9 @@ if 'pagina' not in st.session_state:
 # ============================================================
 with st.sidebar:
     # Logo / titulo sidebar
+    st.image("logo.png", use_container_width=True)
     st.markdown(f"""
-    <div style="text-align:center; margin-bottom:24px;">
-        <div style="font-size:2rem; margin-bottom:4px;">📚</div>
+    <div style="text-align:center; margin-bottom:24px; margin-top:-10px;">
         <div style="font-weight:700; font-size:1.1rem; color:{AZUL_OSCURO};">IUBello</div>
         <div style="font-size:0.75rem; color:{GRIS_TEXTO};">Recursos Digitales</div>
     </div>
@@ -431,6 +431,9 @@ if st.session_state.pagina == 'inicio':
 
     if filtros.get('pais') and filtros['pais'] != 'Todos':
         df_filtrado = df_filtrado[df_filtrado['pais'] == filtros['pais']]
+
+    # Ordenar alfabeticamente por nombre
+    df_filtrado = df_filtrado.sort_values('nombre', ascending=True).reset_index(drop=True)
 
     # Metricas
     total = len(df)
