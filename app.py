@@ -353,10 +353,6 @@ with st.sidebar:
 
         df = st.session_state.df_recursos
 
-        # Checkbox freemium / pago
-        incluir_freemium = st.checkbox("Incluir recursos 'freemium' (gratis con limites)", value=True)
-        mostrar_pago = st.checkbox("Mostrar tambien recursos de pago (referencia)", value=False)
-
         buscar_texto = st.text_input("Buscar por nombre o descripcion", placeholder="Escribe aqui...")
 
         # Tipo
@@ -376,8 +372,6 @@ with st.sidebar:
         filtro_pais = st.selectbox("Pais / Institucion de origen", paises)
 
         st.session_state.filtros = {
-            'freemium': incluir_freemium,
-            'pago': mostrar_pago,
             'texto': buscar_texto,
             'tipo': filtro_tipo,
             'area': filtro_area,
@@ -437,10 +431,6 @@ if st.session_state.pagina == 'inicio':
 
     if filtros.get('pais') and filtros['pais'] != 'Todos':
         df_filtrado = df_filtrado[df_filtrado['pais'] == filtros['pais']]
-
-    # Filtro de acceso
-    if not filtros.get('pago', False):
-        df_filtrado = df_filtrado[~df_filtrado['acceso'].str.contains('Suscripcion', case=False, na=False)]
 
     # Metricas
     total = len(df)
