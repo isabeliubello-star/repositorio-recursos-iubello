@@ -319,8 +319,10 @@ if 'pagina' not in st.session_state:
 # ============================================================
 with st.sidebar:
     # Logo / titulo sidebar
-    if os.path.exists("logo.png"):
-        st.image("logo.png", use_container_width=True)
+    from pathlib import Path
+    logo_path = Path(__file__).parent / "logo.png"
+    if logo_path.exists():
+        st.image(str(logo_path), use_container_width=True)
     else:
         st.markdown(f"""
         <div style="text-align:center; margin-bottom:24px;">
