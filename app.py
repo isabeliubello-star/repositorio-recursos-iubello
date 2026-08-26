@@ -103,6 +103,12 @@ st.markdown(f"""
     #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
+
+    /* Ocultar boton de colapsar/expandir sidebar */
+    [data-testid="collapsedControl"] {{display: none;}}
+    button[kind="header"] {{display: none;}}
+    .css-1rs6os {{display: none;}}
+    .css-17es36v {{display: none;}}
 </style>
 """, unsafe_allow_html=True)
 
