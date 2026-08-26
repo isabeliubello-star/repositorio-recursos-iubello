@@ -319,9 +319,17 @@ if 'pagina' not in st.session_state:
 # ============================================================
 with st.sidebar:
     # Logo / titulo sidebar
-    st.image("logo.png", use_container_width=True)
+    if os.path.exists("logo.png"):
+        st.image("logo.png", use_container_width=True)
+    else:
+        st.markdown(f"""
+        <div style="text-align:center; margin-bottom:24px;">
+            <div style="font-size:2rem; margin-bottom:4px;">📚</div>
+        </div>
+        """, unsafe_allow_html=True)
     st.markdown(f"""
-    <div style="text-align:center; margin-bottom:24px; margin-top:-10px;">
+    <div style="text-align:center; margin-bottom:24px;">
+        <div style="font-weight:700; font-size:1.1rem; color:{AZUL_OSCURO};">IUBello</div>
         <div style="font-size:0.75rem; color:{GRIS_TEXTO};">Recursos Digitales</div>
     </div>
     """, unsafe_allow_html=True)
@@ -334,6 +342,7 @@ with st.sidebar:
     menu_opciones = {
         "🏠 Inicio": "inicio",
         "➕ Agregar recurso": "agregar",
+        "🔍 Buscar": "buscar",
         "📊 Estadisticas": "estadisticas"
     }
 
