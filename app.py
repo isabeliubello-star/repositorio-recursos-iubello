@@ -148,8 +148,8 @@ def siguiente_id(df):
 
 def tag_acceso(acceso):
     x = str(acceso).lower().strip()
-    if 'libre' in x:
-        return 'Libre'
+    if 'freemium' in x:
+        return 'Freemium'
     elif 'gratuito' in x:
         return 'Gratuito'
     elif 'suscrip' in x:
