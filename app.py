@@ -4,6 +4,17 @@ import os
 from pathlib import Path
 
 # ============================================================
+# LIMPIAR SESSION STATE SI HAY PROBLEMAS (al inicio)
+# ============================================================
+# Si el usuario llega sin session_state valido, inicializamos todo
+if 'init' not in st.session_state:
+    for key in list(st.session_state.keys()):
+        del st.session_state[key]
+    st.session_state.init = True
+    st.session_state.vista = 'tarjetas'
+    st.rerun()
+
+# ============================================================
 # CONFIGURACION DE PAGINA
 # ============================================================
 st.set_page_config(
@@ -20,7 +31,6 @@ AZUL_OSCURO = "#1a3a5c"
 AZUL_CLARO = "#5B9BD5"
 ROJO_IU = "#C8102E"
 GRIS_TEXTO = "#666666"
-GRIS_FONDO = "#f4f6f8"
 VERDE_GRATIS = "#27ae60"
 BLANCO = "#ffffff"
 NEGRO = "#2c3e50"
@@ -35,7 +45,6 @@ st.markdown(f"""
     .iu-header {{
         display: flex; align-items: center; gap: 16px; margin-bottom: 8px;
     }}
-    .iu-header-icon {{ font-size: 2.5rem; }}
     .iu-header-title {{
         font-size: 1.9rem; font-weight: 700; color: {NEGRO}; margin: 0; letter-spacing: -0.5px;
     }}
@@ -104,11 +113,12 @@ st.markdown(f"""
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
 
-    /* Ocultar boton de colapsar/expandir sidebar */
-    [data-testid="collapsedControl"] {{display: none;}}
-    button[kind="header"] {{display: none;}}
-    .css-1rs6os {{display: none;}}
-    .css-17es36v {{display: none;}}
+    /* OCULTAR BOTON DE COLAPSAR SIDEBAR - multiple selectores para compatibilidad */
+    [data-testid="stSidebarCollapsedControl"] {{display: none !important;}}
+    [data-testid="collapsedControl"] {{display: none !important;}}
+    button[kind="header"] {{display: none !important;}}
+    button[kind="headerNoPadding"] {{display: none !important;}}
+    .stSidebarCollapsedControl {{display: none !important;}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -148,8 +158,8 @@ def siguiente_id(df):
 
 def tag_acceso(acceso):
     x = str(acceso).lower().strip()
-    if 'freemium' in x:
-        return 'Freemium'
+    if 'libre' in x:
+        return 'Libre'
     elif 'gratuito' in x:
         return 'Gratuito'
     elif 'suscrip' in x:
@@ -168,82 +178,91 @@ def tag_class(tag):
 
 
 # ============================================================
-# INICIALIZAR SESSION STATE
+# CARGAR DATOS
 # ============================================================
 if 'df_recursos' not in st.session_state:
     st.session_state.df_recursos = cargar_csv_inicial()
 
-if 'vista' not in st.session_state:
-    st.session_state.vista = 'tarjetas'
+# ============================================================
+# SIDEBAR - SIEMPRE VISIBLE, NUNCA SE ROMPE
+# ============================================================
+try:
+    with st.sidebar:
+        # Logo
+        logo_path = Path(__file__).parent / "logo.png"
+        if logo_path.exists():
+            st.image(str(logo_path), use_container_width=True)
+        else:
+            st.markdown(f"""
+            <div style="text-align:center; margin-bottom:24px;">
+                <div style="font-size:2rem; margin-bottom:4px;">📚</div>
+            </div>
+            """, unsafe_allow_html=True)
 
-# ============================================================
-# SIDEBAR - SIEMPRE VISIBLE
-# ============================================================
-with st.sidebar:
-    # Logo
-    logo_path = Path(__file__).parent / "logo.png"
-    if logo_path.exists():
-        st.image(str(logo_path), use_container_width=True)
-    else:
         st.markdown(f"""
         <div style="text-align:center; margin-bottom:24px;">
-            <div style="font-size:2rem; margin-bottom:4px;">📚</div>
+            <div style="font-weight:700; font-size:1.1rem; color:{AZUL_OSCURO};">IUBello</div>
+            <div style="font-size:0.75rem; color:{GRIS_TEXTO};">Recursos Digitales</div>
         </div>
         """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div style="text-align:center; margin-bottom:24px;">
-        <div style="font-size:0.75rem; color:{GRIS_TEXTO};">Recursos Digitales</div>
-    </div>
-    """, unsafe_allow_html=True)
+        st.markdown("---")
 
-    st.markdown("---")
+        # Navegacion con radio (mas estable que botones)
+        st.markdown(f"<div class='sidebar-title'>🧭 Menu</div>", unsafe_allow_html=True)
+        pagina = st.radio(
+            "",
+            ["🏠 Inicio", "➕ Agregar recurso", "🔍 Buscar", "📊 Estadisticas"],
+            label_visibility="collapsed"
+        )
 
-    # Navegacion con radio (mas estable que botones)
-    st.markdown(f"<div class='sidebar-title'>🧭 Menu</div>", unsafe_allow_html=True)
-    pagina = st.radio(
-        "",
-        ["🏠 Inicio", "➕ Agregar recurso", "📊 Estadisticas"],
-        label_visibility="collapsed"
-    )
+        st.markdown("---")
 
-    st.markdown("---")
+        # Filtros (solo en inicio)
+        if pagina == "🏠 Inicio":
+            st.markdown(f"<div class='sidebar-title'>🔎 Filtros</div>", unsafe_allow_html=True)
 
-    # Filtros (solo en inicio)
-    if pagina == "🏠 Inicio":
-        st.markdown(f"<div class='sidebar-title'>🔎 Filtros</div>", unsafe_allow_html=True)
+            df_side = st.session_state.df_recursos
 
-        df_side = st.session_state.df_recursos
+            buscar_texto = st.text_input("Buscar por nombre o descripcion", placeholder="Escribe aqui...", key="busq")
 
-        buscar_texto = st.text_input("Buscar por nombre o descripcion", placeholder="Escribe aqui...", key="busq")
+            tipos = ['Todos'] + sorted([t for t in df_side['tipo'].unique() if t.strip()])
+            filtro_tipo = st.selectbox("Tipo de recurso", tipos, key="tipo_f")
 
-        tipos = ['Todos'] + sorted([t for t in df_side['tipo'].unique() if t.strip()])
-        filtro_tipo = st.selectbox("Tipo de recurso", tipos, key="tipo_f")
+            areas = ['Todos'] + sorted([a for a in df_side['area'].unique() if a.strip()])
+            filtro_area = st.selectbox("Area de conocimiento", areas, key="area_f")
 
-        areas = ['Todos'] + sorted([a for a in df_side['area'].unique() if a.strip()])
-        filtro_area = st.selectbox("Area de conocimiento", areas, key="area_f")
+            idiomas = ['Todos'] + sorted([i for i in df_side['idioma'].unique() if i.strip()])
+            filtro_idioma = st.selectbox("Idioma", idiomas, key="idioma_f")
 
-        idiomas = ['Todos'] + sorted([i for i in df_side['idioma'].unique() if i.strip()])
-        filtro_idioma = st.selectbox("Idioma", idiomas, key="idioma_f")
+            paises = ['Todos'] + sorted([p for p in df_side['pais'].unique() if p.strip()])
+            filtro_pais = st.selectbox("Pais / Institucion de origen", paises, key="pais_f")
 
-        paises = ['Todos'] + sorted([p for p in df_side['pais'].unique() if p.strip()])
-        filtro_pais = st.selectbox("Pais / Institucion de origen", paises, key="pais_f")
+            st.session_state.filtros = {
+                'texto': buscar_texto,
+                'tipo': filtro_tipo,
+                'area': filtro_area,
+                'idioma': filtro_idioma,
+                'pais': filtro_pais
+            }
 
-        st.session_state.filtros = {
-            'texto': buscar_texto,
-            'tipo': filtro_tipo,
-            'area': filtro_area,
-            'idioma': filtro_idioma,
-            'pais': filtro_pais
-        }
+        st.markdown("---")
+        st.markdown(f"""
+        <div style="font-size:0.75rem; color:{GRIS_TEXTO}; text-align:center;">
+            Institucion Universitaria<br>
+            <strong style="color:{AZUL_OSCURO};">Publica de Bello</strong>
+        </div>
+        """, unsafe_allow_html=True)
 
-    st.markdown("---")
-    st.markdown(f"""
-    <div style="font-size:0.75rem; color:{GRIS_TEXTO}; text-align:center;">
-        Institucion Universitaria<br>
-        <strong style="color:{AZUL_OSCURO};">Publica de Bello</strong>
-    </div>
-    """, unsafe_allow_html=True)
+        # Boton de emergencia para reiniciar
+        if st.button("🔄 Reiniciar app", use_container_width=True):
+            for key in list(st.session_state.keys()):
+                del st.session_state[key]
+            st.rerun()
+
+except Exception as e:
+    st.error(f"Error en sidebar: {e}")
+    pagina = "🏠 Inicio"
 
 
 # ============================================================
@@ -256,7 +275,7 @@ if pagina == "🏠 Inicio":
     # Header
     st.markdown(f"""
     <div class="iu-header">
-        <div class="iu-header-icon">📚</div>
+        <div style="font-size:2.5rem;">📚</div>
         <div>
             <div class="iu-header-title">Repositorio de Recursos Digitales</div>
             <div class="iu-header-sub">Catalogo institucional IUBello de bibliotecas, repositorios, plataformas, simuladores y herramientas educativas de acceso gratuito.</div>
