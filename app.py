@@ -362,6 +362,7 @@ if pagina == "🏠 Inicio":
                             if len(str(row['descripcion'])) > 200:
                                 desc += '...'
 
+                            # Tarjeta con descripcion corta
                             st.markdown(f"""
                             <div class="resource-card">
                                 <div style="display:flex; justify-content:space-between; align-items:flex-start;">
@@ -372,6 +373,12 @@ if pagina == "🏠 Inicio":
                                 <div class="card-desc">{desc}</div>
                             </div>
                             """, unsafe_allow_html=True)
+
+                            # Boton "Ver mas" para mostrar descripcion completa
+                            desc_completa = str(row['descripcion'])
+                            if len(desc_completa) > 200:
+                                with st.expander("📖 Ver descripcion completa"):
+                                    st.write(desc_completa)
 
                             url = str(row['url']).strip()
                             if url.startswith('http'):
