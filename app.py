@@ -109,7 +109,50 @@ st.markdown(f"""
         font-size: 0.85rem; color: #856404; margin-bottom: 16px;
     }}
 
-    #MainMenu {{visibility: hidden;}}
+    .tooltip-container {
+        position: relative;
+        display: inline;
+        cursor: help;
+        border-bottom: 1px dashed #999;
+    }
+    .tooltip-text {
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        bottom: 120%;
+        left: 0;
+        background-color: {AZUL_OSCURO};
+        color: white;
+        padding: 12px 16px;
+        border-radius: 10px;
+        z-index: 1000;
+        width: 280px;
+        font-size: 0.85rem;
+        line-height: 1.5;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+        transition: opacity 0.2s;
+        pointer-events: none;
+    }
+    .tooltip-text::after {
+        content: "";
+        position: absolute;
+        top: 100%;
+        left: 20px;
+        border-width: 8px;
+        border-style: solid;
+        border-color: {AZUL_OSCURO} transparent transparent transparent;
+    }
+    .tooltip-container:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
+    }
+    .info-icon {
+        color: {AZUL_CLARO};
+        font-size: 0.9rem;
+        margin-left: 4px;
+        cursor: help;
+    }
+        #MainMenu {{visibility: hidden;}}
     footer {{visibility: hidden;}}
     header {{visibility: hidden;}}
 
@@ -370,15 +413,25 @@ if pagina == "🏠 Inicio":
                                     <span class="{tag_cls}">{tag}</span>
                                 </div>
                                 <div class="card-meta">{meta}</div>
-                                <div class="card-desc">{desc}</div>
                             </div>
                             """, unsafe_allow_html=True)
 
-                            # Boton "Ver mas" para mostrar descripcion completa
-                            desc_completa = str(row['descripcion'])
+                            # Tooltip con descripcion completa al pasar el cursor
+                            desc_completa = str(row['descripcion']).replace('"', '&quot;')
                             if len(desc_completa) > 200:
-                                with st.expander("📖 Ver descripcion completa"):
-                                    st.write(desc_completa)
+                                st.markdown(f"""
+                                <div style="font-size:0.88rem; color:#555; line-height:1.5; margin-bottom:14px;">
+                                    {desc}
+                                    <span class="tooltip-container">
+                                        <span class="info-icon">ℹ️</span>
+                                        <span class="tooltip-text">{desc_completa}</span>
+                                    </span>
+                                </div>
+                                """, unsafe_allow_html=True)
+                            else:
+                                st.markdown(f"""
+                                <div class="card-desc">{desc}</div>
+                                """, unsafe_allow_html=True)
 
                             url = str(row['url']).strip()
                             if url.startswith('http'):
